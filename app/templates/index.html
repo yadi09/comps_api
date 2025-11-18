@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Property Comps Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #searchBox {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            padding: 8px;
+            width: 320px
+        }
+
+        button {
+            padding: 8px 12px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px
+        }
+
+        th,
+        td {
+            padding: 8px;
+            border: 1px solid #ddd
+        }
+
+        th {
+            background: #f0f0f0
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Property Comps Viewer</h1>
+    <div id="searchBox">
+        <input id="addressInput" placeholder="Enter property address..." />
+        <button id="searchBtn">Search</button>
+    </div>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const addr = document.getElementById('addressInput').value.trim();
+            if (!addr) return alert('Enter address');
+            const resDiv = document.getElementById('results');
+            resDiv.innerHTML = 'Loading...';
+            try {
+                const resp = await fetch(`/comps?address=${encodeURIComponent(addr)}`);
+                const json = await resp.json();
+                if (json.status !== 'success') {
+                    resDiv.innerHTML = '<p>Error retrieving data</p>';
+                    return;
+                }
+                const comps = json.data;
+                if (!comps || comps.length === 0) { resDiv.innerHTML = '<p>No comps</p>'; return; }
+
+                let html = '<table><tr><th>Address</th><th>Status</th><th>Year</th><th>Beds</th><th>Baths</th><th>Sqft</th><th>Sale Amount</th><th>Last Sale</th><th>Distance</th></tr>';
+                comps.forEach(c => {
+                    const saleDate = c.lastSaleDate ? new Date(c.lastSaleDate).toLocaleDateString() : 'N/A';
+                    const saleAmount = c.lastSaleAmount ? '$' + Number(c.lastSaleAmount).toLocaleString() : 'N/A';
+                    html += `<tr><td>${c.address?.label || 'N/A'}</td><td>${c.status || ''}</td><td>${c.yearBuilt || ''}</td><td>${c.bedrooms || ''}</td><td>${c.bathrooms || ''}</td><td>${c.squareFeet || ''}</td><td>${saleAmount}</td><td>${saleDate}</td><td>${c.distanceFromSubject || ''}</td></tr>`;
+                });
+                html += '</table>';
+                resDiv.innerHTML = html;
+            } catch (err) {
+                resDiv.innerHTML = '<p>Error fetching data</p>';
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+
+</html>
