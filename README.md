@@ -1,4 +1,4 @@
-# PropStream FastAPI Example
+# Comps Project
 
 ## Quick start (local)
 
