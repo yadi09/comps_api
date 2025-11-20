@@ -56,7 +56,12 @@ def get_filter_data(address_id: str) -> dict:
         page.on("request", on_request)
 
         # 1. go to login
-        page.goto(LOGIN_URL, wait_until="domcontentloaded", timeout=60000)
+        page.goto(LOGIN_URL, wait_until="domcontentloaded", timeout=90000)
+
+        # try:
+        #     page.get_by_role("button", name="onetrust-accept-btn-handler").click()
+        # except Exception:
+        #     logger.info("Cookie accept button not found or already accepted")
 
         # 2. fill and submit
         page.fill('input[type="text"], input[name="username"], input[type="email"]', USERNAME)
@@ -84,10 +89,10 @@ def get_filter_data(address_id: str) -> dict:
         # click comparables tab - adjust name if UI changes
         try:
             page.get_by_role("tab", name="Comparables & Nearby Listings").click()
+            # page.wait_for_load_state("networkidle") # 60000 ms = 60s
         except Exception:
             logger.info("Comparables tab click failed (selector may have changed)")
 
-        page.wait_for_load_state("networkidle", timeout=600000)
 
         # short pause to let the target request fire
         time.sleep(2)
@@ -101,7 +106,7 @@ def get_filter_data(address_id: str) -> dict:
                 page.get_by_role("tab", name="Comparables & Nearby Listings").click()
             except Exception:
                 logger.info("Comparables tab click failed on retry (selector may have changed)")
-            page.wait_for_load_state("networkidle", timeout=600000)
+            page.wait_for_load_state("networkidle", timeout=60000)
             time.sleep(2)
 
         browser.close()
